@@ -18,7 +18,7 @@ services:
       # Opcional: scripts de inicialización
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - postgres_network
+      - cross_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -31,5 +31,5 @@ volumes:
     driver: local
 
 networks:
-  postgres_network:
-    driver: bridge
+  cross_network:
+    external: true

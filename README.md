@@ -12,6 +12,7 @@ This project sets up a development environment with:
 - **n8n**: Workflow automation platform
 - **PostgreSQL with pgvector**: Database with support for vector searches (useful for AI/ML)
 - **Ollama**: Local LLM inference engine for running AI models
+- **Portainer**: Docker management web interface
 
 ## Prerequisites
 
@@ -19,7 +20,21 @@ This project sets up a development environment with:
 - Docker Compose
 
 ## Installation
-### 1. Start PostgreSQL
+### 1. Start Portainer (Docker Management UI)
+
+```bash
+docker-compose -f docker-compose.portainer.yml up -d
+```
+
+This will start Portainer on ports `9000` (HTTP) and `9443` (HTTPS).
+
+**Access Portainer:**
+- HTTPS: `https://localhost:9443` or `https://YOUR_SERVER_IP:9443`
+- HTTP: `http://localhost:9000` or `http://YOUR_SERVER_IP:9000`
+
+On first access, you'll need to create an admin user.
+
+### 2. Start PostgreSQL
 
 ```bash
 docker-compose -f docker-compose.db.yml up -d
@@ -34,23 +49,33 @@ This will start PostgreSQL with pgvector on port `5434`.
 - User: `postgres`
 - Password: `password123`
 
-### 2. Start n8n
+### 3. Start n8n
 ```bash
 docker-compose -f docker-compose.n8n.yml up -d
 ```
 
 This will start n8n on port `5678`.
 
-### 3. Start Ollama
+### 4. Start Ollama
 ```bash
 docker-compose -f docker-compose.ollama.yml up -d
 ```
 
 This will start Ollama on port `11434` and accept external connections.
 
+### Start all services at once
+
+```bash
+docker-compose -f docker-compose.portainer.yml up -d
+docker-compose -f docker-compose.db.yml up -d
+docker-compose -f docker-compose.n8n.yml up -d
+docker-compose -f docker-compose.ollama.yml up -d
+```
+
 ### Stop Services
 
 ```bash
+docker-compose -f docker-compose.portainer.yml down
 docker-compose -f docker-compose.n8n.yml down
 docker-compose -f docker-compose.db.yml down
 docker-compose -f docker-compose.ollama.yml down
@@ -58,6 +83,7 @@ docker-compose -f docker-compose.ollama.yml down
 ### Restart services
 
 ```bash
+docker-compose -f docker-compose.portainer.yml restart
 docker-compose -f docker-compose.n8n.yml restart
 docker-compose -f docker-compose.db.yml restart
 docker-compose -f docker-compose.ollama.yml restart
@@ -65,8 +91,24 @@ docker-compose -f docker-compose.ollama.yml restart
 
 
 ## Usage
-### Access n8n
-Open your browser and visit: [http://localhost:5678](http://localhost:5678)
+
+### Access Services
+
+**Portainer (Docker Management):**
+- HTTPS: `https://localhost:9443` or `https://YOUR_SERVER_IP:9443`
+- HTTP: `http://localhost:9000` or `http://YOUR_SERVER_IP:9000`
+- On first access, create an admin user (username and password)
+- You can manage all Docker containers, images, volumes, and networks from here
+
+**n8n (Workflow Automation):**
+- `http://localhost:5678` or `http://YOUR_SERVER_IP:5678`
+
+**Ollama (LLM API):**
+- API: `http://localhost:11434` or `http://YOUR_SERVER_IP:11434`
+
+**PostgreSQL:**
+- Host: `localhost` or `YOUR_SERVER_IP`
+- Port: `5434`
 
 #### Environment Variables (n8n)
 - `N8N_HOST`: Hostname for n8n (default: localhost)
@@ -74,6 +116,7 @@ Open your browser and visit: [http://localhost:5678](http://localhost:5678)
 - `N8N_PROTOCOL`: HTTP/HTTPS protocol (default: http)
 - `N8N_RUNNERS_ENABLED`: Enable runners for execution (default: true)
 - `DB_SQLITE_POOL_SIZE`: SQLite connection pool size (default: 5)
+- `N8N_SECURE_COOKIE`: Disabled for HTTP access (default: false)
 
 ### Managing Ollama Models
 #### Install a New Model
@@ -152,11 +195,30 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo systemctl restart docker
 ```
 
+## Portainer Features
+
+With Portainer you can:
+- **View all running containers** and their status
+- **Start/stop/restart** containers with one click
+- **View logs** from any container in real-time
+- **Access container console** to execute commands
+- **Manage Docker images** (pull, delete, inspect)
+- **Monitor resource usage** (CPU, memory, network)
+- **Manage volumes and networks**
+- **View container stats** and performance metrics
+
+This is especially useful for:
+- Monitoring Ollama model downloads
+- Checking n8n workflow execution logs
+- Managing PostgreSQL database container
+- Viewing resource usage of all services
+
 ## Notes
 
 - n8n data is stored in the Docker volume `n8n-data`
 - PostgreSQL data is stored in the local folder `./postgres_data`
 - Ollama models are stored in the Docker volume `ollama-data`
+- Portainer data is stored in the Docker volume `portainer-data`
 - All data directories are ignored in version control
 - pgvector allows storing embeddings and performing vector similarity searches
 - Ollama models can be quite large (2GB-10GB each), ensure you have sufficient disk space
@@ -165,10 +227,11 @@ sudo systemctl restart docker
 
 ⚠️ **This configuration is NOT secure for production use:**
 - Uses default/weak passwords
-- No SSL/TLS encryption
+- No SSL/TLS encryption for most services
 - No firewall rules
 - No authentication restrictions
 - Ollama API is exposed without authentication
+- Portainer exposed without additional security layers
 - Simplified security settings for educational purposes
 
 **For production environments, you must:**
@@ -178,6 +241,15 @@ sudo systemctl restart docker
 - Use secrets management
 - Follow security best practices
 - Conduct security audits
+
+## Service Ports Summary
+
+| Service    | Port(s)          | Protocol   | Access URL                              |
+|------------|------------------|------------|-----------------------------------------|
+| Portainer  | 9000, 9443, 8000 | HTTP/HTTPS | `http://SERVER_IP:9000` or `:9443`      |
+| n8n        | 5678             | HTTP       | `http://SERVER_IP:5678`                 |
+| PostgreSQL | 5434             | TCP        | `SERVER_IP:5434`                        |
+| Ollama     | 11434            | HTTP       | `http://SERVER_IP:11434`                |
 
 ## License
 

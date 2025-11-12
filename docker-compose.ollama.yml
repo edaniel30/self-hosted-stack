@@ -16,6 +16,8 @@ services:
       # Opcional: Limitar o expandir recursos
       # - OLLAMA_NUM_PARALLEL=1
       # - OLLAMA_MAX_LOADED_MODELS=1
+    networks:
+      - cross_network
     restart: unless-stopped
     # Descomentar si tienes GPU NVIDIA
     # deploy:
@@ -29,3 +31,7 @@ services:
 volumes:
   ollama-data:
     driver: local
+
+networks:
+  cross_network:
+    external: true

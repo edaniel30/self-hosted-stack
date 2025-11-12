@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      # Puerto para la interfaz web de Portainer
+      - "9443:9443"
+      # Puerto HTTP (opcional, redirige a HTTPS)
+      - "9000:9000"
+      # Puerto para el agente de Portainer (opcional)
+      - "8000:8000"
+    volumes:
+      # Socket de Docker para administrar contenedores
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Persistencia de datos de Portainer
+      - portainer-data:/data
+    networks:
+      - cross_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  portainer-data:
+    driver: local
+
+networks:
+  cross_network:
+    external: true

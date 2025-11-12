@@ -3,3 +3,4 @@ postgres-data
 .n8n-data
 .DS_Store
 ollama-data
+portainer-data
