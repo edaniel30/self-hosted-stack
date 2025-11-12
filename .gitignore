@@ -2,3 +2,4 @@ n8n-data
 postgres-data
 .n8n-data
 .DS_Store
+ollama-data
