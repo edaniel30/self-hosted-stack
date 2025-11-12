@@ -23,7 +23,6 @@ This project sets up a development environment with:
 .
 ├── docker-compose.n8n.yml      # n8n configuration
 ├── docker-compose.db.yml       # PostgreSQL with pgvector configuration
-├── .n8n-data/                  # n8n persistent data (ignored in git)
 ├── postgres_data/              # PostgreSQL persistent data (ignored in git)
 └── init-scripts/               # Database initialization scripts
 ```
