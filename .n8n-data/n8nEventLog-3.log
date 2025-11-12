@@ -1,0 +1,2 @@
+{"__type":"$$EventMessageAudit","id":"797ec7c8-d96a-4ccb-a400-f2c568c30748","ts":"2025-11-01T14:42:28.633+00:00","eventName":"n8n.audit.workflow.created","message":"n8n.audit.workflow.created","payload":{"userId":"5710d62d-4975-4a51-bea7-f8eb0c916ea1","_email":"evr-daniel@hotmail.com","_firstName":"Daniel","_lastName":"Rivera","globalRole":"global:owner","workflowId":"fOfeScf1WtJtNgq8","workflowName":"My workflow"}}
+{"__type":"$$EventMessageConfirm","confirm":"797ec7c8-d96a-4ccb-a400-f2c568c30748","ts":"2025-11-01T14:42:28.634+00:00","source":{"id":"0","name":"eventBus"}}
