@@ -1,6 +1,13 @@
+# Environment
+.env
+
+# Data directories
 n8n-data
 postgres-data
+postgres_data
 .n8n-data
-.DS_Store
 ollama-data
 portainer-data
+
+# System files
+.DS_Store

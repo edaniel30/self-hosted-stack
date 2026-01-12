@@ -1,24 +1,17 @@
-version: '3.8'
-
 services:
   portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
+    image: ${PORTAINER_IMAGE:-portainer/portainer-ce:latest}
+    container_name: ${CONTAINER_NAME_PORTAINER:-portainer}
     ports:
-      # Puerto para la interfaz web de Portainer
-      - "9443:9443"
-      # Puerto HTTP (opcional, redirige a HTTPS)
-      - "9000:9000"
-      # Puerto para el agente de Portainer (opcional)
-      - "8000:8000"
+      - "${PORTAINER_PORT_HTTPS:-9443}:9443"
+      - "${PORTAINER_PORT_HTTP:-9000}:9000"
+      - "${PORTAINER_PORT_AGENT:-8000}:8000"
     volumes:
-      # Socket de Docker para administrar contenedores
       - /var/run/docker.sock:/var/run/docker.sock
-      # Persistencia de datos de Portainer
-      - portainer-data:/data
+      - ${VOLUME_PORTAINER:-portainer-data}:/data
     networks:
-      - cross_network
-    restart: unless-stopped
+      - ${NETWORK_NAME:-shared_network}
+    restart: ${RESTART_POLICY:-unless-stopped}
     security_opt:
       - no-new-privileges:true
 
@@ -27,5 +20,6 @@ volumes:
     driver: local
 
 networks:
-  cross_network:
-    external: true
+  shared_network:
+    name: ${NETWORK_NAME:-shared_network}
+    external: ${NETWORK_EXTERNAL:-true}

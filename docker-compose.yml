@@ -1,0 +1,112 @@
+services:
+  # ============================================
+  # n8n - Workflow Automation Platform
+  # ============================================
+  n8n:
+    image: ${N8N_IMAGE:-n8nio/n8n:latest}
+    container_name: ${CONTAINER_NAME_N8N:-n8n}
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - ${VOLUME_N8N:-n8n-data}:/home/node/.n8n
+    environment:
+      - DB_SQLITE_POOL_SIZE=${DB_SQLITE_POOL_SIZE:-5}
+      - N8N_RUNNERS_ENABLED=${N8N_RUNNERS_ENABLED:-true}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=${N8N_BLOCK_ENV_ACCESS_IN_NODE:-false}
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL:-http://localhost:5678}
+      - N8N_LISTEN_ADDRESS=${N8N_LISTEN_ADDRESS:-0.0.0.0}
+      - N8N_SECURE_COOKIE=${N8N_SECURE_COOKIE:-false}
+    networks:
+      - ${NETWORK_NAME:-shared_network}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
+      start_period: ${HEALTHCHECK_START_PERIOD:-30s}
+
+  # ============================================
+  # PostgreSQL with pgvector
+  # ============================================
+  postgres:
+    image: ${POSTGRES_IMAGE:-pgvector/pgvector:pg16}
+    container_name: ${CONTAINER_NAME_POSTGRES:-postgres_pgvector}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vectordb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:---encoding=UTF8 --lc-collate=C --lc-ctype=C}
+    ports:
+      - "${POSTGRES_PORT:-5434}:${POSTGRES_INTERNAL_PORT:-5432}"
+    volumes:
+      - ${VOLUME_POSTGRES:-./postgres_data}:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ${NETWORK_NAME:-shared_network}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
+      start_period: ${HEALTHCHECK_START_PERIOD:-30s}
+    restart: ${RESTART_POLICY:-unless-stopped}
+
+  # ============================================
+  # Ollama - Local LLM Inference Engine
+  # ============================================
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    container_name: ${CONTAINER_NAME_OLLAMA:-ollama}
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ${VOLUME_OLLAMA:-ollama-data}:/root/.ollama
+    environment:
+      - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
+    networks:
+      - ${NETWORK_NAME:-shared_network}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    # Uncomment for NVIDIA GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ============================================
+  # Portainer - Docker Management UI
+  # ============================================
+  portainer:
+    image: ${PORTAINER_IMAGE:-portainer/portainer-ce:latest}
+    container_name: ${CONTAINER_NAME_PORTAINER:-portainer}
+    ports:
+      - "${PORTAINER_PORT_HTTPS:-9443}:9443"
+      - "${PORTAINER_PORT_HTTP:-9000}:9000"
+      - "${PORTAINER_PORT_AGENT:-8000}:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${VOLUME_PORTAINER:-portainer-data}:/data
+    networks:
+      - ${NETWORK_NAME:-shared_network}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  n8n-data:
+    driver: local
+  ollama-data:
+    driver: local
+  portainer-data:
+    driver: local
+
+networks:
+  shared_network:
+    name: ${NETWORK_NAME:-shared_network}
+    external: ${NETWORK_EXTERNAL:-true}
