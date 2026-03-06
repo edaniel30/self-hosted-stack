@@ -1,0 +1,25 @@
+services:
+  portainer:
+    image: ${PORTAINER_IMAGE:-portainer/portainer-ce:latest}
+    container_name: ${CONTAINER_NAME_PORTAINER:-portainer}
+    ports:
+      - "${PORTAINER_PORT_HTTPS:-9443}:9443"
+      - "${PORTAINER_PORT_HTTP:-9000}:9000"
+      - "${PORTAINER_PORT_AGENT:-8000}:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${VOLUME_PORTAINER:-portainer-data}:/data
+    networks:
+      - ${NETWORK_NAME:-shared_network}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  portainer-data:
+    driver: local
+
+networks:
+  shared_network:
+    name: ${NETWORK_NAME:-shared_network}
+    external: ${NETWORK_EXTERNAL:-true}
