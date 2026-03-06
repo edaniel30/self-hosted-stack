@@ -11,7 +11,7 @@ services:
       - "${POSTGRES_PORT:-5434}:${POSTGRES_INTERNAL_PORT:-5432}"
     volumes:
       - ${VOLUME_POSTGRES:-./postgres_data}:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./scripts/postgres-vector:/docker-entrypoint-initdb.d
     networks:
       - ${NETWORK_NAME:-shared_network}
     healthcheck:

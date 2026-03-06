@@ -1,4 +1,6 @@
-.PHONY: help setup start stop restart destroy logs logs-n8n logs-postgres logs-ollama logs-portainer logs-tail status clean validate network
+.PHONY: help setup start stop restart destroy status clean validate network \
+       start-n8n stop-n8n start-postgres stop-postgres start-ollama stop-ollama start-portainer stop-portainer \
+       logs ollama-pull ollama-list ollama-rm
 
 # Load environment variables from .env if it exists
 ifneq (,$(wildcard .env))
@@ -6,9 +8,12 @@ ifneq (,$(wildcard .env))
     export
 endif
 
+# All compose files for combined operations
+COMPOSE_FILES = -f docker-compose.n8n.yml -f docker-compose.db.yml -f docker-compose.ollama.yml -f docker-compose.portainer.yml
+
 # Default target
 help: ## Show this help message
-	@echo "n8n Stack - Available Commands:"
+	@echo "Self Hosted Stack - Available Commands:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
@@ -29,7 +34,7 @@ setup: ## Initial setup - copy .env.example to .env
 	fi
 
 network: ## Create the shared Docker network (if it doesn't exist)
-	@if ! docker network ls | grep -q $(NETWORK_NAME); then \
+	@if ! docker network ls --format '{{.Name}}' | grep -qx $(NETWORK_NAME); then \
 		docker network create $(NETWORK_NAME); \
 		echo "Created network: $(NETWORK_NAME)"; \
 	else \
@@ -42,9 +47,9 @@ start: ## Start all services
 		echo ".env file not found. Run 'make setup' first"; \
 		exit 1; \
 	fi
-	@echo "Starting n8n stack..."
-	@docker compose up -d
-	@echo "n8n stack started"
+	@echo "Starting stack..."
+	@docker compose $(COMPOSE_FILES) up -d
+	@echo "Stack started"
 	@echo ""
 	@echo "Access points:"
 	@echo "  - n8n:        http://localhost:$(N8N_PORT)"
@@ -53,19 +58,19 @@ start: ## Start all services
 	@echo "  - Ollama API: http://localhost:$(OLLAMA_PORT)"
 
 stop: ## Stop all services
-	@echo "Stopping n8n stack..."
-	@docker compose down
-	@echo "n8n stack stopped"
+	@echo "Stopping stack..."
+	@docker compose $(COMPOSE_FILES) down
+	@echo "Stack stopped"
 
 restart: ## Restart all services
-	@echo "Restarting n8n stack..."
-	@docker compose restart
-	@echo "n8n stack restarted"
+	@echo "Restarting stack..."
+	@docker compose $(COMPOSE_FILES) restart
+	@echo "Stack restarted"
 
 destroy: ## Remove all containers and volumes (WARNING: destroys data)
 	@echo "WARNING: This will remove all containers and volumes!"
 	@read -p "Are you sure? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose down -v
+	@docker compose $(COMPOSE_FILES) down -v
 	@echo "All containers and volumes removed"
 
 # Individual Service Management
@@ -101,18 +106,22 @@ stop-portainer: ## Stop only Portainer service
 	@docker compose -f docker-compose.portainer.yml down
 	@echo "Portainer stopped"
 
+# Logs
+logs: ## Show logs for all services (usage: make logs or make logs SERVICE=n8n)
+	@docker compose $(COMPOSE_FILES) logs -f $(SERVICE)
+
 # Status and Validation
 status: ## Show status of all services
-	@echo "n8n Stack Status:"
+	@echo "Self Hosted Stack Status:"
 	@echo ""
-	@docker compose ps
+	@docker compose $(COMPOSE_FILES) ps
 	@echo ""
 	@echo "Network: $(NETWORK_NAME)"
 	@docker network inspect $(NETWORK_NAME) --format '{{range .Containers}}  - {{.Name}}{{"\n"}}{{end}}' 2>/dev/null || echo "  Network not found"
 
 validate: ## Validate docker-compose configuration
 	@echo "Validating docker-compose configuration..."
-	@docker compose config --quiet && echo "Configuration is valid" || echo "Configuration has errors"
+	@docker compose $(COMPOSE_FILES) config --quiet && echo "Configuration is valid" || echo "Configuration has errors"
 
 # Cleanup
 clean: ## Clean up data directories (WARNING: destroys data)
