@@ -1,35 +1,32 @@
-version: '3.8'
-
 services:
   postgres:
-    image: pgvector/pgvector:pg16
-    container_name: postgres_pgvector
+    image: ${POSTGRES_IMAGE:-pgvector/pgvector:pg16}
+    container_name: ${CONTAINER_NAME_POSTGRES:-postgres_pgvector}
     environment:
-      POSTGRES_DB: vectordb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-      # Opcional: configuración adicional
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      POSTGRES_DB: ${POSTGRES_DB:-vectordb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:---encoding=UTF8 --lc-collate=C --lc-ctype=C}
     ports:
-      - "5434:5432"
+      - "${POSTGRES_PORT:-5434}:${POSTGRES_INTERNAL_PORT:-5432}"
     volumes:
-      # Persistencia de datos
-      - ./postgres_data:/var/lib/postgresql/data
-      # Opcional: scripts de inicialización
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ${VOLUME_POSTGRES:-./postgres_data}:/var/lib/postgresql/data
+      - ./scripts/postgres-vector:/docker-entrypoint-initdb.d
     networks:
-      - cross_network
+      - ${NETWORK_NAME:-shared_network}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
+      start_period: ${HEALTHCHECK_START_PERIOD:-30s}
+    restart: ${RESTART_POLICY:-unless-stopped}
 
 volumes:
   postgres-data:
     driver: local
 
 networks:
-  cross_network:
-    external: true
+  shared_network:
+    name: ${NETWORK_NAME:-shared_network}
+    external: ${NETWORK_EXTERNAL:-true}
