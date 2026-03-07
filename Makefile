@@ -1,5 +1,6 @@
 .PHONY: help setup start stop restart destroy status clean validate network \
-       start-n8n stop-n8n start-postgres stop-postgres start-ollama stop-ollama start-portainer stop-portainer \
+       start-n8n stop-n8n restart-n8n start-postgres stop-postgres restart-postgres \
+       start-ollama stop-ollama restart-ollama start-portainer stop-portainer restart-portainer \
        logs ollama-pull ollama-list ollama-rm
 
 # Load environment variables from .env if it exists
@@ -15,7 +16,7 @@ COMPOSE_FILES = -f docker-compose.n8n.yml -f docker-compose.db.yml -f docker-com
 help: ## Show this help message
 	@echo "Self Hosted Stack - Available Commands:"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
 # Setup and Configuration
@@ -82,6 +83,10 @@ stop-n8n: ## Stop only n8n service
 	@docker compose -f docker-compose.n8n.yml down
 	@echo "n8n stopped"
 
+restart-n8n: ## Restart only n8n service
+	@docker compose -f docker-compose.n8n.yml restart
+	@echo "n8n restarted"
+
 start-postgres: ## Start only PostgreSQL service
 	@docker compose -f docker-compose.db.yml up -d
 	@echo "PostgreSQL started on localhost:$(POSTGRES_PORT)"
@@ -89,6 +94,10 @@ start-postgres: ## Start only PostgreSQL service
 stop-postgres: ## Stop only PostgreSQL service
 	@docker compose -f docker-compose.db.yml down
 	@echo "PostgreSQL stopped"
+
+restart-postgres: ## Restart only PostgreSQL service
+	@docker compose -f docker-compose.db.yml restart
+	@echo "PostgreSQL restarted"
 
 start-ollama: ## Start only Ollama service
 	@docker compose -f docker-compose.ollama.yml up -d
@@ -98,6 +107,10 @@ stop-ollama: ## Stop only Ollama service
 	@docker compose -f docker-compose.ollama.yml down
 	@echo "Ollama stopped"
 
+restart-ollama: ## Restart only Ollama service
+	@docker compose -f docker-compose.ollama.yml restart
+	@echo "Ollama restarted"
+
 start-portainer: ## Start only Portainer service
 	@docker compose -f docker-compose.portainer.yml up -d
 	@echo "Portainer started on https://localhost:$(PORTAINER_PORT_HTTPS)"
@@ -105,6 +118,10 @@ start-portainer: ## Start only Portainer service
 stop-portainer: ## Stop only Portainer service
 	@docker compose -f docker-compose.portainer.yml down
 	@echo "Portainer stopped"
+
+restart-portainer: ## Restart only Portainer service
+	@docker compose -f docker-compose.portainer.yml restart
+	@echo "Portainer restarted"
 
 # Logs
 logs: ## Show logs for all services (usage: make logs or make logs SERVICE=n8n)
