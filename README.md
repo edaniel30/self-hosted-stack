@@ -73,10 +73,10 @@ make start
 
 | Command | Description |
 |---------|-------------|
-| `make start-n8n` / `make stop-n8n` | Start/stop n8n |
-| `make start-postgres` / `make stop-postgres` | Start/stop PostgreSQL |
-| `make start-ollama` / `make stop-ollama` | Start/stop Ollama |
-| `make start-portainer` / `make stop-portainer` | Start/stop Portainer |
+| `make start-n8n` / `make stop-n8n` / `make restart-n8n` | Start/stop/restart n8n |
+| `make start-postgres` / `make stop-postgres` / `make restart-postgres` | Start/stop/restart PostgreSQL |
+| `make start-ollama` / `make stop-ollama` / `make restart-ollama` | Start/stop/restart Ollama |
+| `make start-portainer` / `make stop-portainer` / `make restart-portainer` | Start/stop/restart Portainer |
 
 ### Ollama Model Management
 
